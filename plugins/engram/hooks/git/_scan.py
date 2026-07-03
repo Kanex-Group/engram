@@ -18,6 +18,23 @@ import sys
 
 from _common import BYPASS_COMMIT, eprint, load_config
 
+# Secret *files* (not just secret values) that must never be committed to a
+# public/shared history, on top of whatever ``secret_scan.deny_paths`` config
+# provides. These are always enforced so the scan is safe even against an older
+# engram.hooks.json that predates these keys. Database dumps and Obsidian vault
+# internals routinely carry private data.
+EXTRA_DENY_PATH_GLOBS = [
+    "*.db",
+    "*.sqlite",
+    "*.sqlite3",
+    ".obsidian/*",
+    "**/.obsidian/*",
+]
+
+# Configurable extra vault directories (e.g. a private notes vault). Any file
+# under one of these dirs is denied. Read from ``secret_scan.vault_dirs``.
+DEFAULT_VAULT_DIRS = []
+
 
 def _staged_files():
     """Return list of staged file paths (added/copied/modified/renamed)."""
@@ -57,18 +74,53 @@ def _added_lines(path):
 
 
 def _path_matches(path, globs):
-    """True if ``path`` (or its basename) matches any glob."""
-    basename = path.rsplit("/", 1)[-1]
+    """True if ``path`` (or its basename) matches any glob.
+
+    Supports fnmatch globs plus a directory shorthand: a pattern ending in ``/``
+    (e.g. ``.obsidian/`` or ``vault/``) matches any path *inside* that directory,
+    at any depth. ``**`` in a pattern is also honoured for nested matches.
+    """
+    norm = path.replace("\\", "/")
+    basename = norm.rsplit("/", 1)[-1]
     for pattern in globs:
-        if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(basename, pattern):
+        pat = pattern.replace("\\", "/")
+        # Directory shorthand: "dir/" matches "dir/..." and ".../dir/...".
+        if pat.endswith("/"):
+            d = pat[:-1]
+            if norm == d or norm.startswith(d + "/") or ("/" + d + "/") in ("/" + norm):
+                return True
+            continue
+        if fnmatch.fnmatch(norm, pat) or fnmatch.fnmatch(basename, pat):
+            return True
+        # fnmatch does not treat "**" specially; approximate "**/x" as "x" too.
+        if pat.startswith("**/") and fnmatch.fnmatch(basename, pat[3:]):
             return True
     return False
+
+
+def _effective_deny_paths(scan_cfg):
+    """Combine configured deny_paths + built-in extra file globs + vault dirs."""
+    deny_paths = list(scan_cfg.get("deny_paths", []))
+    deny_paths.extend(EXTRA_DENY_PATH_GLOBS)
+    # Configurable vault dirs -> directory-shorthand globs.
+    for vault in scan_cfg.get("vault_dirs", DEFAULT_VAULT_DIRS):
+        v = str(vault).replace("\\", "/").rstrip("/")
+        if v:
+            deny_paths.append(v + "/")
+    # De-dup while preserving order.
+    seen = set()
+    out = []
+    for g in deny_paths:
+        if g not in seen:
+            seen.add(g)
+            out.append(g)
+    return out
 
 
 def scan(config):
     """Return a list of (path, reason) offenders across staged files."""
     scan_cfg = config.get("secret_scan", {})
-    deny_paths = scan_cfg.get("deny_paths", [])
+    deny_paths = _effective_deny_paths(scan_cfg)
     deny_patterns = scan_cfg.get("deny_patterns", [])
 
     compiled = []

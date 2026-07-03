@@ -1,13 +1,27 @@
 {
   "_comment": "Engram enforcement config. Read by both the git hooks (hooks/git/*) and the Claude Code guard (hooks/claude/guard_git.py). Edit to fit your project. If this file is missing or broken, the hooks fall back to these same built-in defaults, so they still work out of the box.",
   "protected_branches": ["main", "master"],
+  "_comment_protected_scope": "'protected-branches' (default, public-safe): only pushes targeting a protected branch require a COMPLETE QA record. 'all-pushes': ANY git push to origin requires a COMPLETE QA record.",
+  "protected_scope": "protected-branches",
   "qa": {
     "dir": "QA",
     "record_glob": "QA_*.md",
     "passed_marker": "status: PASSED"
   },
   "secret_scan": {
-    "deny_paths": ["*.env", ".env", "secrets.*", "_dev_core/*", "*.locked"],
+    "_comment_deny_paths": "Secret FILES (not just secret values). Includes DB dumps (*.db/*.sqlite) and Obsidian vault internals (.obsidian/). Add private vault roots to vault_dirs to deny everything under them.",
+    "deny_paths": [
+      "*.env",
+      ".env",
+      "secrets.*",
+      "_dev_core/*",
+      "*.locked",
+      "*.db",
+      "*.sqlite",
+      "*.sqlite3",
+      ".obsidian/*"
+    ],
+    "vault_dirs": [],
     "deny_patterns": [
       "-----BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY-----",
       "AKIA[0-9A-Z]{16}",
@@ -22,5 +36,20 @@
       "Co-Authored-By: .*anthropic",
       "Generated with .*Claude"
     ]
+  },
+  "_comment_stop_list": "Extra destructive-op matchers for the Claude Code guard (guard_git.py). All CONFIRM-level (ask the human) except deny_write_on_protected_branch, which is a hard DENY (branch-first rule).",
+  "stop_list": {
+    "confirm_branch_delete": true,
+    "confirm_worktree_remove": true,
+    "confirm_db_migrations": true,
+    "db_migration_matchers": [
+      "alembic\\s+upgrade",
+      "prisma\\s+migrate",
+      "manage\\.py\\s+migrate",
+      "knex\\s+migrate"
+    ],
+    "confirm_bulk_add_in_brain": true,
+    "brain_markers": [".obsidian", "engram.hooks.json", "OBRAIN.md"],
+    "deny_write_on_protected_branch": true
   }
 }

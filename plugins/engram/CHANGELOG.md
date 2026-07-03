@@ -3,6 +3,25 @@
 `brain-sync` reads this to decide "did the brain improve since this project's last_sync?".
 Newest at top. Format: `## [version] — YYYY-MM-DD` then bullets tagged `[A]` (capability) / `[B]` (method) / `[C]` (human layer).
 
+## [1.2.0] — 2026-07-03
+Turns methodology into enforcement — the tools/hooks from a full 4-lens optimization audit.
+- **Dev-spine CLIs:** `brain-id` (atomic next-ID allocator + marker bump) and `brain-note` (deterministic
+  Session/Issue/Fix/Feature note scaffolder) — collision-proof IDs, no more hand-bumping a marker.
+- **Ledgers & gate:** `offender_ledger` (append-only repeat-offender tally), `qa_check` (QA-record
+  *completeness* parser) — now wired into the merge-gate so a push to a protected branch is blocked unless
+  the QA record is COMPLETE (status PASSED **and** no unticked boxes), not merely present.
+- **Lints:** `vault_lint` (broken wikilinks / orphans / stale paths), `parity_check` (capabilities↔skills),
+  `version_canon` (version consistency), `money_path_lint` (unlocked money-path heuristic),
+  `upload_lint` (5-guard upload check).
+- **Health & install:** `brain_doctor` (aggregate "is the harness armed?" CLI) + `install.py --check`.
+- **New Claude Code hooks:** stop-list guard extensions (branch/worktree delete, DB migrations, `git add -A`,
+  branch-first, configurable `protected_scope`), `spawn_log` (PostToolUse sub-agent observability),
+  `stop_verify` (non-blocking self-verify nudge), `money_inject` (edit-time money-path checklist).
+- **Ops tools:** `deploy_smoke` (content assertion, not just HTTP 200), `wiki_drift`, `changelog_check`.
+- **Tamper-evidence:** `seal.py` generalized to protect any configured append-only file (dev-spine indexes,
+  money ledgers), not just governance.
+- Secret pre-commit scan extended to DB/vault file paths. All tools pure-stdlib, cross-platform, self-tested.
+
 ## [1.1.0] — 2026-07-03
 - **Enforcement hook layer** — turns rules from prose into harness/git enforcement. Two tiers:
   - **Claude Code hooks** (`hooks/hooks.json`): `SessionStart` brain-first orientation; `PreToolUse(Bash)`

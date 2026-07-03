@@ -89,6 +89,60 @@ def case_secret_commit_blocked(root):
         pass
 
 
+def case_db_file_blocked(root):
+    """A staged *.db file is blocked by the extended path denylist."""
+    _write(root, "data.db", "SQLite format 3\x00 (binary-ish)\n")
+    _git(["add", "data.db"], root)
+    rc, out, err = _git(["commit", "-m", "add db"], root)
+    blocked = rc != 0 and "engram" in (out + err).lower()
+    _record("staged *.db file is blocked", blocked, out + err)
+    _git(["reset", "-q"], root)
+    try:
+        os.remove(os.path.join(root, "data.db"))
+    except OSError:
+        pass
+
+
+def case_obsidian_file_blocked(root):
+    """A staged file under .obsidian/ is blocked (vault internals)."""
+    _write(root, os.path.join(".obsidian", "workspace.json"), "{}\n")
+    _git(["add", os.path.join(".obsidian", "workspace.json")], root)
+    rc, out, err = _git(["commit", "-m", "add vault config"], root)
+    blocked = rc != 0 and "engram" in (out + err).lower()
+    _record("staged .obsidian/ file is blocked", blocked, out + err)
+    _git(["reset", "-q"], root)
+    try:
+        os.remove(os.path.join(root, ".obsidian", "workspace.json"))
+    except OSError:
+        pass
+
+
+def case_configured_vault_dir_blocked(root):
+    """Unit-test the vault_dirs -> deny logic in _scan directly.
+
+    (A live commit test can't reliably inject config here because _common's
+    load_config finds the shipped hooks/engram.hooks.json before any repo-root
+    file. The new logic itself -- vault_dirs expands to a directory denylist and
+    _path_matches honours the directory shorthand -- is what we assert.)
+    """
+    sys.path.insert(0, HOOK_DIR)
+    import importlib
+
+    _scan = importlib.import_module("_scan")
+    cfg = {"vault_dirs": ["private_vault"], "deny_paths": []}
+    globs = _scan._effective_deny_paths(cfg)
+    hit_inside = _scan._path_matches("private_vault/note.md", globs)
+    hit_nested = _scan._path_matches("sub/private_vault/deep/n.md", globs)
+    miss_other = _scan._path_matches("src/main.py", globs)
+    # Also confirm the always-on DB/vault-internal globs match.
+    hit_db = _scan._path_matches("data.db", globs)
+    hit_obs = _scan._path_matches(".obsidian/workspace.json", globs)
+    passed = hit_inside and hit_nested and (not miss_other) and hit_db and hit_obs
+    detail = "inside=%s nested=%s other=%s db=%s obs=%s" % (
+        hit_inside, hit_nested, miss_other, hit_db, hit_obs)
+    _record("configured vault_dir + extra file globs deny correctly", passed, detail)
+
+
 def case_fingerprint_msg_blocked(root):
     _write(root, "ok.txt", "harmless content\n")
     _git(["add", "ok.txt"], root)
@@ -156,6 +210,37 @@ def case_push_to_main_with_qa_passes(root):
     _record("push to protected branch WITH QA record passes", passed, out + err)
 
 
+def case_incomplete_qa_record_blocked(root):
+    """A QA record present but WITHOUT the passed marker must NOT satisfy the gate.
+
+    Covers the completeness check (grep fallback): a record that merely EXISTS is
+    not enough; it must be complete. We add an incomplete record on its own
+    branch state and confirm the push is still blocked.
+    """
+    _write(root, os.path.join("QA", "QA_9000.md"),
+           "# QA record\n\nstatus: IN_PROGRESS\n- [ ] tests pass\n")
+    _git(["add", os.path.join("QA", "QA_9000.md")], root)
+    _git(["commit", "-m", "Add incomplete QA record"], root)
+
+    sha = _head_sha(root)
+    stdin = _push_stdin(sha, "main")
+    rc, out, err = _run(
+        [sys.executable, os.path.join(HOOK_DIR, "_mergegate.py"), "origin",
+         "https://example.invalid/repo.git"],
+        cwd=root,
+        stdin=stdin,
+    )
+    blocked = rc != 0 and "engram" in (out + err).lower()
+    _record("push blocked when only an INCOMPLETE QA record exists", blocked, out + err)
+    # Remove the incomplete record so the later complete-record case is clean.
+    try:
+        os.remove(os.path.join(root, "QA", "QA_9000.md"))
+    except OSError:
+        pass
+    _git(["add", "-A"], root)
+    _git(["commit", "-m", "remove incomplete QA record"], root)
+
+
 def case_non_protected_push_passes(root):
     """A push to a non-protected branch needs no QA record."""
     sha = _head_sha(root)
@@ -180,6 +265,9 @@ def main():
     try:
         _init_repo(tmp)
         case_secret_commit_blocked(tmp)
+        case_db_file_blocked(tmp)
+        case_obsidian_file_blocked(tmp)
+        case_configured_vault_dir_blocked(tmp)
         case_fingerprint_msg_blocked(tmp)
         clean_ok = case_clean_commit_passes(tmp)
         # The push cases need at least one commit on HEAD.
@@ -189,6 +277,7 @@ def main():
             _git(["add", "seed.txt"], tmp)
             _git(["commit", "-m", "seed", "--no-verify"], tmp)
         case_push_to_main_without_qa_blocked(tmp)
+        case_incomplete_qa_record_blocked(tmp)
         case_non_protected_push_passes(tmp)
         case_push_to_main_with_qa_passes(tmp)
     finally:

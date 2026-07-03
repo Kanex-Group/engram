@@ -16,6 +16,7 @@ Pure Python 3 stdlib. Cross-platform.
 
 import glob
 import os
+import subprocess
 import sys
 
 from _common import BYPASS_PUSH, eprint, load_config, repo_root
@@ -50,34 +51,86 @@ def parse_push_refs(stdin_text):
     return branches
 
 
-def find_passed_qa_record(config, root):
-    """Return the path of a complete QA record, or None."""
+def _qa_check_tool():
+    """Path to the shared tools/qa_check.py completeness checker, or None.
+
+    Lives at ``<plugin_root>/tools/qa_check.py`` -- two levels up from this
+    hooks/git/ dir. Built by a sibling agent; may be absent in older installs.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    candidate = os.path.normpath(
+        os.path.join(here, "..", "..", "tools", "qa_check.py")
+    )
+    return candidate if os.path.isfile(candidate) else None
+
+
+def _qa_record_paths(config, root):
+    """Yield candidate QA record file paths under the configured QA dir."""
     qa = config.get("qa", {})
     qa_dir = qa.get("dir", "QA")
     record_glob = qa.get("record_glob", "QA_*.md")
-    passed_marker = qa.get("passed_marker", "status: PASSED")
 
     search_dir = os.path.join(root, qa_dir)
     if not os.path.isdir(search_dir):
-        return None
+        return []
 
-    # Search the QA dir and any nested subdirs.
     patterns = [
         os.path.join(search_dir, record_glob),
         os.path.join(search_dir, "**", record_glob),
     ]
-    seen = set()
+    seen = []
+    seen_set = set()
     for pattern in patterns:
         for path in glob.glob(pattern, recursive=True):
-            if path in seen or not os.path.isfile(path):
+            if path in seen_set or not os.path.isfile(path):
                 continue
-            seen.add(path)
+            seen_set.add(path)
+            seen.append(path)
+    return seen
+
+
+def _record_complete_by_grep(path, passed_marker):
+    """Legacy fallback: record is 'complete' if it contains the passed_marker."""
+    try:
+        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+            return passed_marker in fh.read()
+    except OSError:
+        return False
+
+
+def find_passed_qa_record(config, root):
+    """Return the path of a COMPLETE QA record, or None.
+
+    Completeness is decided by the shared ``tools/qa_check.py`` (exit 0 == the
+    record is complete: status PASSED *and* no unticked applicable checkboxes).
+    If that tool is not shipped, fall back to the historical exists+marker grep
+    so this hook still gates standalone.
+    """
+    qa = config.get("qa", {})
+    passed_marker = qa.get("passed_marker", "status: PASSED")
+    paths = _qa_record_paths(config, root)
+    tool = _qa_check_tool()
+
+    for path in paths:
+        if tool is not None:
             try:
-                with open(path, "r", encoding="utf-8", errors="replace") as fh:
-                    if passed_marker in fh.read():
-                        return path
-            except OSError:
+                proc = subprocess.run(
+                    [sys.executable, tool, path],
+                    capture_output=True,
+                    text=True,
+                    cwd=root,
+                    check=False,
+                )
+                if proc.returncode == 0:
+                    return path
+                # qa_check ran and judged this record INCOMPLETE -> do not accept
+                # it via grep; move to the next candidate.
                 continue
+            except OSError:
+                # Tool present but couldn't be launched: fall back to grep.
+                pass
+        if _record_complete_by_grep(path, passed_marker):
+            return path
     return None
 
 
@@ -110,17 +163,17 @@ def main(argv):
 
     qa = config.get("qa", {})
     eprint("")
-    eprint("[engram] pre-push BLOCKED: protected branch push without QA record")
+    eprint("[engram] pre-push BLOCKED: protected branch push without a COMPLETE QA record")
     eprint("---------------------------------------------------------------")
     eprint("  protected branch(es) targeted: %s" % ", ".join(sorted(set(targeted))))
-    eprint("  looked for: %s/%s containing %r"
-           % (qa.get("dir", "QA"), qa.get("record_glob", "QA_*.md"),
-              qa.get("passed_marker", "status: PASSED")))
+    eprint("  looked for: %s/%s that passes qa_check (complete)"
+           % (qa.get("dir", "QA"), qa.get("record_glob", "QA_*.md")))
+    eprint("  completeness = status PASSED AND no unticked applicable checkboxes")
     eprint("---------------------------------------------------------------")
-    eprint("WHY: pushes to a protected branch must be backed by a completed QA")
-    eprint("     record. None was found.")
-    eprint("FIX: run your pre-merge-check flow to produce a passing QA record,")
-    eprint("     then push again.")
+    eprint("WHY: pushes to a protected branch must be backed by a COMPLETE QA")
+    eprint("     record. None found (a record may exist but still be incomplete).")
+    eprint("FIX: run your pre-merge-check flow, tick every applicable box, set")
+    eprint("     status: PASSED, then push again.")
     eprint("BYPASS (emergency only): %s" % BYPASS_PUSH)
     eprint("")
     return 1

@@ -23,5 +23,31 @@
     "lock": "append-only.lock",
     "entry_heading_regex": "^###\\s+([A-Z]+-\\d+)\\b",
     "footer_strip_regex": "\\n+Up:[^\\n]*\\s*\\Z"
+  },
+
+  "append_only_files": [
+    {
+      "_comment": "Generalized append-only tamper-evidence for ARBITRARY record files (dev-spine Session/Issue/Fix indexes, a money ledger, ...). snapshot records a per-row SHA-256; verify allows appending new rows but FAILS (nonzero) on any edit or deletion of a previously-seen row. Omit or empty this list to leave the feature inactive.",
+      "file": "dev/sessions-index.md",
+      "lock": "dev/sessions-index.rowlock",
+      "row_key_regex": "^\\s*(?:\\|\\s*|#{1,6}\\s+)([A-Za-z]+[-_]\\d+)\\b",
+      "row_scope": "line"
+    },
+    {
+      "_comment": "row_scope 'block' keys a multi-line record by its heading (heading line -> next heading). Use for issue/fix logs where one id owns several lines.",
+      "file": "dev/issues-log.md",
+      "row_scope": "block"
+    },
+    {
+      "_comment": "A money ledger: only 'lock' and 'row_key_regex'/'row_scope' are optional; they fall back to append_only_file_defaults below.",
+      "file": "finance/ledger.md"
+    }
+  ],
+
+  "append_only_file_defaults": {
+    "_comment": "Defaults applied to any append_only_files entry that omits these keys. row_key_regex group(1) is the stable row id; rows that don't match (headers, separators, prose) are skipped. lock_suffix builds a lock path when an entry omits 'lock'.",
+    "lock_suffix": ".rowlock",
+    "row_key_regex": "^\\s*(?:\\|\\s*|#{1,6}\\s+)([A-Za-z]+[-_]\\d+)\\b",
+    "row_scope": "line"
   }
 }

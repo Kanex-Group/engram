@@ -1,5 +1,5 @@
 {
-  "description": "Engram Tier-1 enforcement hooks for Claude Code. SessionStart injects a brain-first orientation block; PreToolUse(Bash) blocks git pushes to protected branches without a complete QA record, commits carrying AI-authorship trailers, and staging of secret files. Pure Python 3 stdlib; config from engram.hooks.json with built-in defaults.",
+  "description": "Engram Tier-1 enforcement hooks for Claude Code. SessionStart injects a brain-first orientation block; PreToolUse(Bash) blocks git pushes to protected branches without a complete QA record, commits carrying AI-authorship trailers, and staging of secret files; PreToolUse(Edit|Write) injects a money-path lock/idempotency/ledger checklist for configured money paths (non-blocking); PostToolUse(Task|Agent) logs sub-agent spawns to an append-only JSONL (non-blocking); Stop emits a non-blocking verify-before-done nudge. Pure Python 3 stdlib; config from engram.hooks.json with built-in defaults.",
   "hooks": {
     "SessionStart": [
       {
@@ -19,6 +19,39 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/guard_git.py",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/money_inject.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Task|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/spawn_log.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/stop_verify.py",
             "timeout": 15
           }
         ]
