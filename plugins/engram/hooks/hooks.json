@@ -1,0 +1,28 @@
+{
+  "description": "Engram Tier-1 enforcement hooks for Claude Code. SessionStart injects a brain-first orientation block; PreToolUse(Bash) blocks git pushes to protected branches without a complete QA record, commits carrying AI-authorship trailers, and staging of secret files. Pure Python 3 stdlib; config from engram.hooks.json with built-in defaults.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/brain_first.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/guard_git.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

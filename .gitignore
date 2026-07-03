@@ -10,7 +10,12 @@ Thumbs.db
 .env
 secrets.*
 
+# Python caches
+__pycache__/
+*.pyc
+
 # Local-only brain state — never versioned
 _dev_core/
 _dev_core.locked
 .brain_review
+.engram_review

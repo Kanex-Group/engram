@@ -1,0 +1,26 @@
+{
+  "_comment": "Engram enforcement config. Read by both the git hooks (hooks/git/*) and the Claude Code guard (hooks/claude/guard_git.py). Edit to fit your project. If this file is missing or broken, the hooks fall back to these same built-in defaults, so they still work out of the box.",
+  "protected_branches": ["main", "master"],
+  "qa": {
+    "dir": "QA",
+    "record_glob": "QA_*.md",
+    "passed_marker": "status: PASSED"
+  },
+  "secret_scan": {
+    "deny_paths": ["*.env", ".env", "secrets.*", "_dev_core/*", "*.locked"],
+    "deny_patterns": [
+      "-----BEGIN (RSA|OPENSSH|EC|PRIVATE) KEY-----",
+      "AKIA[0-9A-Z]{16}",
+      "xox[baprs]-[0-9A-Za-z-]+",
+      "ghp_[A-Za-z0-9]{36}",
+      "(?i)(password|secret|api[_-]?key|token)\\s*[:=]\\s*['\\\"][^'\\\"]{6,}"
+    ]
+  },
+  "fingerprint": {
+    "deny_trailers": [
+      "Co-Authored-By: Claude",
+      "Co-Authored-By: .*anthropic",
+      "Generated with .*Claude"
+    ]
+  }
+}

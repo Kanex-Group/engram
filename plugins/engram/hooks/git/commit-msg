@@ -1,0 +1,5 @@
+#!/bin/sh
+# Engram commit-msg hook -> block AI-authorship fingerprint trailers.
+# git passes the path to the commit message file as $1.
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$HOOK_DIR/_pyrun.sh" _fingerprint.py "$1"

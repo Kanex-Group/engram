@@ -1,0 +1,5 @@
+#!/bin/sh
+# Engram pre-commit hook -> secret / PII / unshippable staged-file scan.
+# Delegates to _scan.py via the shared Python launcher.
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$HOOK_DIR/_pyrun.sh" _scan.py --staged

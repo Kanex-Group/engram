@@ -1,0 +1,5 @@
+#!/bin/sh
+# Engram pre-push hook -> gate protected-branch pushes on a QA record.
+# git passes <remote-name> <remote-url> as args and ref lines on stdin.
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$HOOK_DIR/_pyrun.sh" _mergegate.py "$@"

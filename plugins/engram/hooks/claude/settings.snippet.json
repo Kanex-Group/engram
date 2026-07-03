@@ -1,0 +1,29 @@
+{
+  "_comment": "MANUAL-WIRING ALTERNATIVE. The primary artifact is plugins/engram/hooks/hooks.json, which Claude Code auto-registers when the Engram plugin is installed. Use this snippet only if you wire hooks by hand: merge the 'hooks' object below into your .claude/settings.json. ${CLAUDE_PLUGIN_ROOT} resolves to the plugin install dir; if you installed the scripts outside a plugin, replace it with ${CLAUDE_PROJECT_DIR}/.claude/engram or an absolute path. Requires python3 on PATH (some Windows installs use 'python').",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/brain_first.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/claude/guard_git.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "_comment": "Config for tools/seal.py. Copy to engram.config.json next to your repo root (or set ENGRAM_CONFIG). All paths are relative to the repo root. No hardcoded folder names live in seal.py — they all come from here.",
+
+  "root": ".",
+
+  "seal": {
+    "_comment": "The private directory to encrypt at rest, and where its ciphertext lands.",
+    "protected_dir": "private",
+    "locked_file": "private.locked"
+  },
+
+  "tamper": {
+    "_comment": "Tamper-evidence snapshot of your governance/structure notes. structure_lock holds a SHA-256 manifest of every file matched below.",
+    "structure_lock": "structure.lock",
+    "governance_dirs": ["governance", "policy"],
+    "governance_files": ["ROOT.md", "OVERVIEW.md"],
+    "governance_globs": ["*.md"]
+  },
+
+  "append_only": {
+    "_comment": "Optional. An append-only inbox where past entries must never be edited or deleted (only new ones appended). Each entry starts with a heading like '### ID-001'. Leave file empty/omit this block to skip.",
+    "file": "inbox/append-only-log.md",
+    "lock": "append-only.lock",
+    "entry_heading_regex": "^###\\s+([A-Z]+-\\d+)\\b",
+    "footer_strip_regex": "\\n+Up:[^\\n]*\\s*\\Z"
+  }
+}

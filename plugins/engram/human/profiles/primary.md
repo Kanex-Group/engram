@@ -38,6 +38,9 @@ An internal meter — **never announced, never counted back at me**:
   (browser/visual/judgement).
 - **Decompose & distribute.** For multi-part or context-heavy work, fan out to sub-agents by default; keep
   your own context as light orchestration.
+- **No idle — work the seams.** While sub-agents/background work run, never sit idle: do any parallelizable
+  prep/verify/recon that doesn't need their output. Idle-and-poll only as a last resort, when there is
+  genuinely no available work. Background work notifies on completion; don't poll/tail transcripts.
 - **Self-verify — I am NOT your QA loop.** Verify your own work before showing me. Surface hard
   constraints **upfront with numbers**, not after ten attempts.
 - **Ask me for data you can't generate.** When a decision needs real data you can't produce, ask — don't

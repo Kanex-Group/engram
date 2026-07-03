@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Engram — persistent memory & continuity for AI coding agents. A portable brain of skills and methods any project can adopt. Runs 100% locally.",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "plugins": [
     {
