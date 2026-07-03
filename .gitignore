@@ -1,0 +1,16 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.obsidian/workspace*.json
+
+# Never commit secrets — these must never reach a shared brain
+*.env
+.env
+secrets.*
+
+# Local-only brain state — never versioned
+_dev_core/
+_dev_core.locked
+.brain_review

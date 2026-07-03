@@ -1,0 +1,17 @@
+{
+  "name": "engram",
+  "owner": {
+    "name": "Kanex Group"
+  },
+  "metadata": {
+    "description": "Engram — persistent memory & continuity for AI coding agents. A portable brain of skills and methods any project can adopt. Runs 100% locally.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "engram",
+      "source": "./plugins/engram",
+      "description": "Portable shared brain for AI coding agents: capabilities (skills), methods (OBrain schema, QA & merge gate, LLM-Wiki ops), and an optional human/personal-truth layer. No telemetry, no auto-sync."
+    }
+  ]
+}
