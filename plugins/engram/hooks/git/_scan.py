@@ -130,8 +130,15 @@ def scan(config):
         except re.error as exc:
             eprint("[engram] warning: bad deny_pattern %r skipped (%s)" % (pat, exc))
 
+    # Allowlist: files that intentionally contain fake credentials for testing
+    # the scanner itself (its own self-test fixtures). Configurable; the default
+    # only skips *_selftest.py so real code is always scanned.
+    skip_globs = list(scan_cfg.get("skip_globs", ["*_selftest.py"]))
+
     offenders = []
     for path in _staged_files():
+        if _path_matches(path, skip_globs):
+            continue
         if _path_matches(path, deny_paths):
             offenders.append((path, "path matches deny_paths glob"))
             # A denied path is unshippable regardless of content; move on.

@@ -12,7 +12,11 @@ that survives `/clear` and context resets, a code-mirroring wiki so it stops re-
 a library of battle-tested engineering methods (QA gate, money-path guardrails, deploy discipline, upload
 hardening, and more).
 
-> **Status:** v1.0.0 — first public release.
+> **Status:** v1.2.1.
+>
+> 🚀 **New here? Start with the [Getting Started guide](docs/GETTING-STARTED.md)** — it takes you from
+> zero to a working setup in a couple of minutes, no prior experience needed. The short version: install
+> the plugin, then tell your agent *"set up Engram for this project"* and work normally.
 
 ---
 

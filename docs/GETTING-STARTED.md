@@ -12,6 +12,20 @@ This guide takes you from zero to a brain that genuinely knows your project.
 
 ---
 
+## TL;DR — the 60-second version (no expertise needed)
+
+If you read nothing else:
+
+1. **Install:** in Claude Code, run `/plugin marketplace add Kanex-Group/engram` then `/plugin install engram@engram`.
+2. **Set it up:** open your project and just tell the agent, in plain English: **“set up Engram for this project.”** It scaffolds the vault, installs the hooks, and orients itself — you don't run the commands by hand.
+3. **Work normally.** The agent writes down what it learns and reads it back next session. That's it.
+
+**You do not need to learn any of the tools in this guide.** The agent runs them for you. The rest of this page is for when you're curious about *how* it works, or want to check that everything's healthy.
+
+To check your setup at any time, ask the agent to **“run brain doctor”** (or `python plugins/engram/tools/brain_doctor.py`) — it prints a plain PASS / WARN / FAIL health table.
+
+---
+
 ## 1. What you need
 
 - **[Claude Code](https://claude.com/claude-code)** — Engram is a Claude Code plugin.
@@ -198,7 +212,27 @@ don't forget.
 
 ---
 
-## 8. Privacy & getting help
+## 8. Tool cheat-sheet (in plain English)
+
+**You don't run these by hand and you don't need to memorize them** — the agent invokes them as it works. This is just so the names aren't a mystery when you see them.
+
+| Ask the agent to… | It uses | What it does, plainly |
+|---|---|---|
+| "sync the brain" / start of session | `brain-sync` | Catches the agent up on what it knows before it acts |
+| "is my setup healthy?" | `brain doctor` | One-command PASS/WARN/FAIL check that everything's wired |
+| "log this session / issue / fix" | `brain-note`, `brain-id` | Creates a correctly-numbered note automatically (no ID clashes) |
+| "check the notes for rot" | `vault-lint` | Finds broken links and stale file references in your vault |
+| "is this ready to ship?" | `pre-merge-check`, `qa_check` | The QA gate — blocks a merge until the checklist is truly complete |
+| "I'm touching payment/ledger code" | `money-path-guard`, `money_path_lint` | Guardrails so you don't reintroduce a double-payout |
+| "I'm adding a file upload" | `harden-upload`, `upload_lint` | Checks the upload has the required safety guards |
+| "has this bug happened before?" | `offender_ledger` | Remembers repeat offenders across sessions |
+| "did the deploy actually work?" | `deploy_smoke` | Checks the live page really serves content, not just a 200 |
+
+Everything runs **locally**, on your machine, in plain Python — nothing to configure to get started.
+
+---
+
+## 9. Privacy & getting help
 
 **Privacy.** Engram runs entirely on your machine. It's Markdown files plus plugin skills —
 no telemetry, no analytics, no account, no auto-sync. Nothing is uploaded anywhere. The

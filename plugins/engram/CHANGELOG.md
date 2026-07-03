@@ -3,6 +3,15 @@
 `brain-sync` reads this to decide "did the brain improve since this project's last_sync?".
 Newest at top. Format: `## [version] — YYYY-MM-DD` then bullets tagged `[A]` (capability) / `[B]` (method) / `[C]` (human layer).
 
+## [1.2.1] — 2026-07-03
+- Fix: the secret pre-commit scanner flagged its **own** `_selftest.py` fixtures (which contain deliberately
+  fake credentials to test the scanner) — a self-referential false-positive that blocked installers' first
+  commit. It now skips `*_selftest.py` by default (configurable via `secret_scan.skip_globs`); real files are
+  still scanned. Found by dogfooding the hooks on a live repo.
+- Docs: **beginner-friendly getting-started** — a 60-second TL;DR ("tell your agent *set up Engram*"),
+  a plain-English tool cheat-sheet, and a `brain doctor` "is it healthy?" check. README points new users
+  straight to it. Goal: usable with little-to-no prior experience.
+
 ## [1.2.0] — 2026-07-03
 Turns methodology into enforcement — the tools/hooks from a full 4-lens optimization audit.
 - **Dev-spine CLIs:** `brain-id` (atomic next-ID allocator + marker bump) and `brain-note` (deterministic
