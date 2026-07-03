@@ -3,6 +3,12 @@
 `brain-sync` reads this to decide "did the brain improve since this project's last_sync?".
 Newest at top. Format: `## [version] — YYYY-MM-DD` then bullets tagged `[A]` (capability) / `[B]` (method) / `[C]` (human layer).
 
+## [1.2.2] — 2026-07-03
+- Repositioning: descriptions now lead **guardrails-first** — "persistent memory *and guardrails* for AI
+  coding agents; your agent remembers your project and can't quietly break it." The enforcement layer
+  (secret-scan, QA merge-gate, branch/push guards) is the differentiator, so it leads. README tagline +
+  both manifests updated. No functional change.
+
 ## [1.2.1] — 2026-07-03
 - Fix: the secret pre-commit scanner flagged its **own** `_selftest.py` fixtures (which contain deliberately
   fake credentials to test the scanner) — a self-referential false-positive that blocked installers' first

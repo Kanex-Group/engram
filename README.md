@@ -1,10 +1,13 @@
 # Engram
 
-**Persistent memory & continuity for AI coding agents.**
+**Persistent memory _and guardrails_ for AI coding agents — your agent remembers your project across
+sessions, and can't quietly break it.**
 
 An *engram* is the physical trace a memory leaves in the brain. This is that, for your AI coding agent:
 a portable, local knowledge base plus a set of skills that let an agent **orient from what's already
-known** instead of re-deriving your project from scratch every session.
+known** instead of re-deriving your project every session — backed by **enforcement hooks the agent
+can't skip** (secret-scan, a QA merge-gate, no-push-to-`main`-without-review). Memory so it remembers;
+guardrails so it can't silently do something dangerous.
 
 Engram is packaged as a [Claude Code](https://claude.com/claude-code) plugin. Drop it into any project
 and your agent gains a durable "brain": a structured Obsidian-style vault (**OBrain**), a session spine

@@ -4,8 +4,8 @@
     "name": "Kanex Group"
   },
   "metadata": {
-    "description": "Engram — persistent memory & continuity for AI coding agents. A portable brain of skills and methods any project can adopt. Runs 100% locally.",
-    "version": "1.2.1"
+    "description": "Engram — persistent memory and guardrails for AI coding agents. Your agent remembers your project across sessions (local OBrain vault + session spine + code wiki) and can't quietly break it: secret-scan, a QA merge-gate, and branch/push guards it can't skip. 100% local, no telemetry.",
+    "version": "1.2.2"
   },
   "plugins": [
     {

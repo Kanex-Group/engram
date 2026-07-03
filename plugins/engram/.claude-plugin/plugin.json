@@ -1,7 +1,7 @@
 {
   "name": "engram",
-  "description": "Portable persistent memory for AI coding agents — capabilities (skills), methods (OBrain schema, QA & merge gate, LLM-Wiki ops), and an optional human/personal-truth layer. Run brain-sync at the start of a session in any project. Runs 100% locally; no telemetry.",
-  "version": "1.2.1",
+  "description": "Persistent memory and guardrails for AI coding agents. Remembers your project across sessions (OBrain vault + session spine + code wiki) and enforces safety with hooks the agent can't skip: secret-scan, a QA merge-gate, and branch/push guards. Run brain-sync at the start of a session. Runs 100% locally; no telemetry.",
+  "version": "1.2.2",
   "author": {
     "name": "Kanex Group"
   },
